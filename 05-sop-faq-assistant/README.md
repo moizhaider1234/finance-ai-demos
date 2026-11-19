@@ -1,0 +1,5 @@
+# 05 - SOP and FAQ assistant (DEMO BUILD)
+**Problem:** clients ask the same questions about fees, deadlines and documents.
+**How it works:** webhook receives `{"question": "..."}` -> keyword retriever picks the top 3 of 8 firm documents (the scope-and-limits document is always included) -> LLM answers ONLY from them and returns `answered`, `escalate` or `refuse` -> if not answered, the team is emailed and the reply is "I'll pass this to the team." -> everything is logged to the `FAQ Log` tab. Tax, legal and investment advice questions are always refused (rule 3 in `system_prompt.md`).
+**Test:** `test_questions.csv` has 20 questions: 13 answerable, 3 advice questions (must refuse), 4 not covered (must escalate). Run `python run_faq_eval.py <your-webhook-url>`.
+**Verified offline:** the retriever puts the right source document in its top 3 for 14 of 16 questions that have a source document; the 2 misses are advice questions, which the system prompt refuses regardless. The LLM half needs your API key, so its score is yours to measure: [X]/20.

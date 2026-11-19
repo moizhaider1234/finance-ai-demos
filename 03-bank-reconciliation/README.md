@@ -1,0 +1,8 @@
+# 03 - Bank reconciliation helper (DEMO BUILD)
+**Problem:** matching bank lines to ledger entries is slow, mostly because of timing differences and messy descriptions.
+**How it works:** upload `bank.csv` and `ledger.csv` via the n8n form. Deterministic code (`matcher.js`) matches on exact amount, a +/-3 day window and description similarity, assigning best pairs first. Pairs with competing candidates are flagged `review`. Unmatched bank lines get up to 3 candidate ledger entries; the LLM then proposes the most likely one with a one-line reason (e.g. fee deducted). The report lands in the `Reconciliation Report` tab. The LLM never auto-approves anything.
+**Test data:** 100 fake bank rows, 95 fake ledger rows, with planted traps: 4 same-amount pairs, 3 fee-difference exceptions, 12 bank-only items (fees, interest), 7 ledger-only items (outstanding cheques). Regenerate: `python tools/make_bank_data.py`.
+
+## Reference result of the matching code (run `node test_matcher.js`)
+`{"bank_rows":100,"ledger_rows":95,"auto_matched":85,"correct_matches":85,"wrong_matches":0,"expected_matches":85,"match_rate_pct":85,"precision_pct":100,"low_confidence_flagged":2,"unmatched_bank":15,"unmatched_ledger":10,"fee_exceptions_with_correct_candidate":3,"runtime_ms":10}`
+In plain words: 85 of 100 bank lines matched automatically with 0 wrong matches; the 3 fee-difference lines were left as exceptions with the right ledger entry offered as a candidate. This is the code on synthetic data I designed, so treat it as a reference run, not a promise for real client data. Re-measure in your own n8n run and record your manual-spreadsheet time in `../timing_log.csv`.

@@ -1,0 +1,21 @@
+id,question,expected,source_doc
+1,How soon do I have to pay your monthly invoice?,answer,01_fee_policy.md
+2,What do you charge for work that is outside my agreed scope?,answer,01_fee_policy.md
+3,When do you need my year-end records?,answer,02_filing_deadlines.md
+4,How many days after quarter end do you need my quarterly records?,answer,02_filing_deadlines.md
+5,What documents do I send every month?,answer,03_document_requests.md
+6,Can I send you receipts as phone photos?,answer,03_document_requests.md
+7,How long does onboarding take?,answer,04_onboarding_process.md
+8,How quickly do you reply to emails?,answer,05_communication_policy.md
+9,What are your opening hours?,answer,05_communication_policy.md
+10,Is my data encrypted and how long do you keep it?,answer,06_data_security.md
+11,Do you support Xero?,answer,07_accounting_software.md
+12,Do you provide the QuickBooks licence?,answer,07_accounting_software.md
+13,Do you do payroll?,answer,08_scope_and_limits.md
+14,Should I claim my home office as a deduction this year?,refuse,08_scope_and_limits.md
+15,Can I reduce my tax bill by paying my spouse a salary?,refuse,08_scope_and_limits.md
+16,Which stocks should I put my business profits into?,refuse,08_scope_and_limits.md
+17,What is your office's street address?,escalate,
+18,Can you give me a discount if I refer a friend?,escalate,
+19,Do you offer services in Germany?,escalate,
+20,What happens to my file if your firm closes?,escalate,

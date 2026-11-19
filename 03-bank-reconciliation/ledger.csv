@@ -1,0 +1,96 @@
+id,date,memo,amount
+L062,2026-03-01,USPS postage,-24.80
+L082,2026-03-01,Google Workspace users,-62.11
+L030,2026-03-02,Canva Pro subscription,-57.21
+L014,2026-03-02,Dropbox business plan,-54.02
+L032,2026-03-02,Team lunch groceries,-73.11
+L076,2026-03-03,Client payment Evergreen Cafe,628.50
+L008,2026-03-03,LinkedIn ads campaign,-326.72
+L034,2026-03-03,Team lunch groceries,-79.42
+L067,2026-03-03,Comcast business internet,-139.72
+L021,2026-03-03,Mailchimp newsletter,-45.00
+L024,2026-03-03,QuickBooks Online fee,-60.75
+L061,2026-03-03,LinkedIn ads campaign,-291.12
+L053,2026-03-04,Google Workspace users,-62.94
+L038,2026-03-05,Uber client travel,-25.90
+L054,2026-03-05,Starbucks client coffee,-16.63
+L058,2026-03-05,Comcast business internet,-138.24
+L071,2026-03-05,QuickBooks Online fee,-63.42
+L065,2026-03-05,Amazon office supplies,-87.66
+L003,2026-03-05,Hilton hotel stay,-242.46
+L045,2026-03-05,Zoom annual plan,-143.41
+L081,2026-03-06,Client payment Birch Dental,797.68
+L069,2026-03-07,Notion team plan,-44.43
+L039,2026-03-07,Amazon office supplies,-82.32
+L010,2026-03-07,Delta flight Boston,-340.05
+L022,2026-03-08,Slack subscription,-45.00
+L015,2026-03-10,Comcast business internet,-119.00
+L006,2026-03-10,Shell fuel van,-69.15
+L017,2026-03-10,Shell fuel van,-55.93
+L051,2026-03-10,Client payment Cobalt Studio,2538.62
+L070,2026-03-10,LinkedIn ads campaign,-323.73
+L046,2026-03-11,LinkedIn ads campaign,-325.11
+L016,2026-03-11,Amazon office supplies,-79.86
+L072,2026-03-12,Client payment Acme Corp,1768.85
+L049,2026-03-12,Slack subscription,-87.96
+L056,2026-03-12,Team lunch groceries,-86.23
+L037,2026-03-13,Amazon office supplies,-95.44
+L020,2026-03-13,Shell fuel van,-65.56
+L029,2026-03-13,Uber client travel,-26.61
+L048,2026-03-13,Team lunch groceries,-70.80
+L007,2026-03-13,Client payment Cobalt Studio,2292.13
+L084,2026-03-14,Client payment Acme Corp,1753.22
+L013,2026-03-14,Client payment Evergreen Cafe,610.63
+L004,2026-03-14,Canva Pro subscription,-62.14
+L026,2026-03-14,Client payment Cobalt Studio,2537.16
+L031,2026-03-15,Canva Pro subscription,-62.99
+L073,2026-03-15,Mailchimp newsletter,-49.25
+L050,2026-03-15,LinkedIn ads campaign,-326.11
+L064,2026-03-15,Team lunch groceries,-84.32
+L005,2026-03-15,Amazon office supplies,-75.45
+L036,2026-03-16,Hilton hotel stay,-249.01
+L041,2026-03-16,Client payment Delta Realty,1448.07
+L044,2026-03-16,QuickBooks Online fee,-71.74
+L075,2026-03-17,Team lunch groceries,-68.78
+L074,2026-03-17,WeWork hot desk rent,-506.39
+L040,2026-03-17,LinkedIn ads campaign,-317.29
+L042,2026-03-18,Zoom annual plan,-134.01
+L025,2026-03-18,Amazon office supplies,-83.01
+L033,2026-03-18,Amazon office supplies,-88.13
+L023,2026-03-19,LinkedIn ads campaign,-298.65
+L079,2026-03-19,Slack subscription,-76.00
+L087,2026-03-20,Team lunch groceries,-86.97
+L059,2026-03-20,Delta flight Boston,-311.70
+L078,2026-03-20,Delta flight Boston,-283.80
+L055,2026-03-20,Team lunch groceries,-87.98
+L002,2026-03-20,Zoom annual plan,-147.60
+L035,2026-03-20,Team lunch groceries,-73.95
+L012,2026-03-21,Notion team plan,-60.00
+L019,2026-03-21,QuickBooks Online fee,-65.98
+L043,2026-03-21,Slack subscription,-88.24
+L009,2026-03-22,Starbucks client coffee,-18.16
+L060,2026-03-22,Starbucks client coffee,-19.95
+L085,2026-03-22,Uber client travel,-27.55
+L090,2026-03-22,Cheque 1043 Garcia Print,-215.00
+L028,2026-03-22,Starbucks client coffee,-20.49
+L091,2026-03-23,Cash petty float,-100.00
+L095,2026-03-23,Client payment Granite Law (deposit in transit),980.00
+L052,2026-03-23,Notion team plan,-52.44
+L027,2026-03-24,Team lunch groceries,-80.37
+L086,2026-03-24,Shell fuel van,-62.30
+L066,2026-03-24,FedEx shipping client docs,-41.69
+L083,2026-03-25,USPS postage,-22.00
+L047,2026-03-25,Starbucks client coffee,-20.01
+L089,2026-03-25,Cheque 1042 Smith Plumbing,-380.00
+L011,2026-03-25,Dropbox business plan,-60.00
+L018,2026-03-25,QuickBooks Online fee,-72.48
+L063,2026-03-26,Shell fuel van,-69.70
+L080,2026-03-26,Uber client travel,-27.91
+L077,2026-03-26,WeWork hot desk rent,-383.03
+L094,2026-03-26,Accrual: courier,-42.10
+L001,2026-03-28,Mailchimp newsletter,-45.34
+L068,2026-03-28,Insurance premium Hiscox,-192.59
+L057,2026-03-28,Canva Pro subscription,-57.64
+L088,2026-03-29,Slack subscription,-97.37
+L092,2026-03-31,Client payment Foxglove (not yet cleared),1500.00
+L093,2026-03-31,Cheque 1044 City Parking,-64.00

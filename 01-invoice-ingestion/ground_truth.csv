@@ -1,0 +1,21 @@
+file,vendor,invoice_number,date,currency,subtotal,tax,total,category,region
+invoice_01.pdf,Brightline Software Inc.,INV-13278,2026-03-21,USD,216.00,17.82,233.82,Software & Subscriptions,US
+invoice_02.pdf,Maple & Pine Office Supply,SI-42098,2026-03-24,USD,213.00,14.91,227.91,Office Supplies,US
+invoice_03.pdf,Skyway Travel Co.,A-23434,2026-03-08,USD,367.00,0.00,367.00,Travel,US
+invoice_04.pdf,Harbor Grill & Catering,INV-87397,2026-03-22,USD,171.00,14.96,185.96,Meals & Entertainment,US
+invoice_05.pdf,Northgrid Electric,INV-13905,2026-03-14,USD,412.30,20.62,432.92,Utilities,US
+invoice_06.pdf,Calloway & Reed LLP,INV-83563,2026-03-08,USD,787.50,0.00,787.50,Professional Fees,US
+invoice_07.pdf,Pixelbeam Ads,R-38893,2026-03-07,USD,1200.00,0.00,1200.00,Marketing & Advertising,US
+invoice_08.pdf,Union Square Workspaces,SI-10851,2026-03-15,USD,900.00,0.00,900.00,Rent,US
+invoice_09.pdf,Keystone Mutual,A-65392,2026-03-25,USD,865.00,0.00,865.00,Insurance,US
+invoice_10.pdf,ClearWave Telecom,SI-30379,2026-03-11,USD,104.99,6.30,111.29,Telecoms,US
+invoice_11.pdf,Thistle Stationery Ltd,INV-59797,2026-03-04,GBP,192.00,38.40,230.40,Office Supplies,UK
+invoice_12.pdf,Cloudnine Hosting Ltd,SI-55082,2026-03-04,GBP,240.00,48.00,288.00,Software & Subscriptions,UK
+invoice_13.pdf,Great Northern Rail,SI-15695,2026-03-20,GBP,173.00,0.00,173.00,Travel,UK
+invoice_14.pdf,The Copper Kettle Cafe,R-80284,2026-03-24,GBP,78.00,15.60,93.60,Meals & Entertainment,UK
+invoice_15.pdf,Albion Energy plc,R-20328,2026-03-04,GBP,298.40,14.92,313.32,Utilities,UK
+invoice_16.pdf,Whitcombe Accountancy,SI-85674,2026-03-10,GBP,650.00,130.00,780.00,Professional Fees,UK
+invoice_17.pdf,Lantern Digital Marketing,INV-16006,2026-03-07,GBP,750.00,150.00,900.00,Marketing & Advertising,UK
+invoice_18.pdf,Regent Business Centres,A-47930,2026-03-22,GBP,1100.00,220.00,1320.00,Rent,UK
+invoice_19.pdf,Firstline Bank Business,A-23238,2026-03-03,GBP,30.50,0.00,30.50,Bank Charges,UK
+invoice_20.pdf,Orbit Tech Retail,SI-69429,2026-03-13,GBP,577.00,115.40,692.40,Equipment,UK

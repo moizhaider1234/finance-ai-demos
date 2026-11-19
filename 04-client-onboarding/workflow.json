@@ -1,0 +1,434 @@
+{
+  "name": "04 - Client onboarding workflow (DEMO)",
+  "nodes": [
+    {
+      "id": "4f1355d6-03de-4291-9844-874a87b6191c",
+      "name": "Intake form",
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "formTitle": "New client intake (demo)",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Client name",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Contact email",
+              "fieldType": "email",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Region",
+              "fieldType": "dropdown",
+              "fieldOptions": {
+                "values": [
+                  {
+                    "option": "US"
+                  },
+                  {
+                    "option": "UK"
+                  }
+                ]
+              },
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Entity type",
+              "fieldType": "dropdown",
+              "fieldOptions": {
+                "values": [
+                  {
+                    "option": "Sole proprietor"
+                  },
+                  {
+                    "option": "LLC / Ltd"
+                  },
+                  {
+                    "option": "Corporation"
+                  }
+                ]
+              }
+            },
+            {
+              "fieldLabel": "Services",
+              "fieldType": "dropdown",
+              "fieldOptions": {
+                "values": [
+                  {
+                    "option": "Monthly bookkeeping"
+                  },
+                  {
+                    "option": "Bookkeeping + payroll"
+                  },
+                  {
+                    "option": "Year-end only"
+                  }
+                ]
+              }
+            },
+            {
+              "fieldLabel": "Monthly fee",
+              "fieldType": "number"
+            },
+            {
+              "fieldLabel": "Start date",
+              "fieldType": "date"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "0a101c49-ddad-43c9-b983-ab449032cb15",
+      "name": "Normalize intake",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        220,
+        0
+      ],
+      "parameters": {
+        "jsCode": "const j = $json;\nconst slug = String(j['Client name']).replace(/[^A-Za-z0-9 ]/g, '').trim().replace(/ +/g, '_');\nconst uk = j['Region'] === 'UK';\nconst checklist = [ 'Bank statements (last 3 months, all accounts)', 'Credit card statements', 'Sales invoices issued this year', 'Purchase invoices and receipts',\n  uk ? 'VAT registration details and last VAT return' : 'State sales tax registration details (if any)', 'Payroll summary (if applicable)', 'Prior year filed accounts / tax return',\n  'Loan agreements and statements', 'Authority form signed (to deal with tax authority on your behalf)' ];\nreturn { json: { client: j['Client name'], slug, email: j['Contact email'], region: j['Region'], entity: j['Entity type'], services: j['Services'],\n  fee: j['Monthly fee'], start: j['Start date'], currency: uk ? 'GBP' : 'USD', checklist,\n  checklist_text: checklist.map((c, i) => (i + 1) + '. ' + c).join('\\n') } };",
+        "mode": "runOnceForEachItem"
+      }
+    },
+    {
+      "id": "d86ce9e9-d152-4686-9688-f79e56eefbf8",
+      "name": "Drive: create client folder",
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        440,
+        0
+      ],
+      "parameters": {
+        "resource": "folder",
+        "operation": "create",
+        "name": "={{ $json.slug }}",
+        "driveId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "My Drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "mode": "url",
+          "value": "PASTE_CLIENTS_ROOT_FOLDER_URL"
+        }
+      }
+    },
+    {
+      "id": "89afbe1c-220c-4947-be15-d0d457af7a1b",
+      "name": "List subfolders",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        660,
+        0
+      ],
+      "parameters": {
+        "jsCode": "const names = ['01 Engagement', '02 Source Documents', '03 Bookkeeping', '04 Tax and Filings', '05 Correspondence'];\nreturn names.map(n => ({ json: { name: n, parent: $json.id } }));"
+      }
+    },
+    {
+      "id": "52f47fb7-5cf7-4dca-963f-3d48aaaa8406",
+      "name": "Drive: create subfolders",
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        880,
+        0
+      ],
+      "parameters": {
+        "resource": "folder",
+        "operation": "create",
+        "name": "={{ $json.name }}",
+        "driveId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "My Drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "={{ $json.parent }}"
+        }
+      }
+    },
+    {
+      "id": "d5e6f017-72b7-48ee-937e-750f144c1ae1",
+      "name": "Drive: copy engagement letter template",
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        1100,
+        0
+      ],
+      "parameters": {
+        "resource": "file",
+        "operation": "copy",
+        "fileId": {
+          "__rl": true,
+          "mode": "url",
+          "value": "PASTE_ENGAGEMENT_LETTER_TEMPLATE_URL"
+        },
+        "name": "={{ 'Engagement Letter - ' + $('Normalize intake').item.json.client }}",
+        "sameFolder": false,
+        "driveId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "My Drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "={{ $('Drive: create client folder').first().json.id }}"
+        }
+      }
+    },
+    {
+      "id": "517d9430-4ac7-44ae-9c4d-338c2621c6de",
+      "name": "Docs: fill placeholders",
+      "type": "n8n-nodes-base.googleDocs",
+      "typeVersion": 2,
+      "position": [
+        1320,
+        0
+      ],
+      "parameters": {
+        "operation": "update",
+        "documentURL": "={{ $json.id }}",
+        "actionsUi": {
+          "actionFields": [
+            {
+              "action": "replaceAll",
+              "text": "{{CLIENT_NAME}}",
+              "replaceText": "={{ $('Normalize intake').item.json.client }}"
+            },
+            {
+              "action": "replaceAll",
+              "text": "{{SERVICES}}",
+              "replaceText": "={{ $('Normalize intake').item.json.services }}"
+            },
+            {
+              "action": "replaceAll",
+              "text": "{{FEE}}",
+              "replaceText": "={{ $('Normalize intake').item.json.currency + ' ' + $('Normalize intake').item.json.fee }}"
+            },
+            {
+              "action": "replaceAll",
+              "text": "{{START_DATE}}",
+              "replaceText": "={{ $('Normalize intake').item.json.start }}"
+            },
+            {
+              "action": "replaceAll",
+              "text": "{{DATE}}",
+              "replaceText": "={{ $now.toFormat('yyyy-LL-dd') }}"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "16937010-cde5-4d1b-966d-90dea280a033",
+      "name": "Gmail: document checklist DRAFT",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        1540,
+        -100
+      ],
+      "parameters": {
+        "resource": "draft",
+        "operation": "create",
+        "subject": "={{ 'Documents we need to get started - ' + $('Normalize intake').item.json.client }}",
+        "message": "={{ 'Hi ' + $('Normalize intake').item.json.client + ',\\n\\nTo get started please send the following through the secure client portal:\\n\\n' + $('Normalize intake').item.json.checklist_text + '\\n\\nScanned or phone-photo copies are fine if every figure is readable.\\n\\nThank you!' }}",
+        "options": {
+          "sendTo": "={{ $('Normalize intake').item.json.email }}"
+        }
+      }
+    },
+    {
+      "id": "191b298f-30e7-4552-951e-36f94a564821",
+      "name": "Gmail: welcome email DRAFT",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        1540,
+        100
+      ],
+      "parameters": {
+        "resource": "draft",
+        "operation": "create",
+        "subject": "={{ 'Welcome to Meridian, ' + $('Normalize intake').item.json.client }}",
+        "message": "={{ 'Hi,\\n\\nWelcome aboard! Your engagement letter is in your secure folder for review and e-signature. Next: a 30-minute kickoff call within 5 working days.\\n\\nSpeak soon.' }}",
+        "options": {
+          "sendTo": "={{ $('Normalize intake').item.json.email }}"
+        }
+      }
+    },
+    {
+      "id": "9683175c-6efe-4ead-aac2-d5a4cd08c0c7",
+      "name": "Sheet: onboarding tasks",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        1760,
+        0
+      ],
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "mode": "url",
+          "value": "PASTE_GOOGLE_SHEET_URL"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "Onboarding Tasks"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {}
+        }
+      }
+    },
+    {
+      "id": "b12e0080-7b1a-45dd-986b-72bccd8f8b9b",
+      "name": "Build task rows",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1760,
+        150
+      ],
+      "parameters": {
+        "jsCode": "const c = $('Normalize intake').item.json;\nconst steps = ['Review signed engagement letter', 'Confirm bank feeds / software access', 'Receive first documents', 'Kickoff call', 'First month bookkeeping start'];\nreturn steps.map((s, i) => ({ json: { client: c.client, task: s, owner: 'Bookkeeper', status: 'Open', due_in_days: [2, 3, 5, 5, 10][i], created: new Date().toISOString() } }));"
+      }
+    },
+    {
+      "id": "f0569392-dcd5-4518-a303-138463f43237",
+      "name": "Note 11",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        0,
+        220
+      ],
+      "parameters": {
+        "content": "Create a Google Doc template using the placeholders in engagement_letter_template.md. 'Copy template' runs once per client (connect from the folder node).",
+        "height": 140,
+        "width": 360
+      }
+    }
+  ],
+  "connections": {
+    "Intake form": {
+      "main": [
+        [
+          {
+            "node": "Normalize intake",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize intake": {
+      "main": [
+        [
+          {
+            "node": "Drive: create client folder",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Drive: create client folder": {
+      "main": [
+        [
+          {
+            "node": "List subfolders",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Drive: copy engagement letter template",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "List subfolders": {
+      "main": [
+        [
+          {
+            "node": "Drive: create subfolders",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Drive: copy engagement letter template": {
+      "main": [
+        [
+          {
+            "node": "Docs: fill placeholders",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Docs: fill placeholders": {
+      "main": [
+        [
+          {
+            "node": "Gmail: document checklist DRAFT",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Gmail: welcome email DRAFT",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Build task rows",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build task rows": {
+      "main": [
+        [
+          {
+            "node": "Sheet: onboarding tasks",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "pinData": {},
+  "meta": {
+    "templateCredsSetupCompleted": false
+  }
+}

@@ -1,0 +1,11 @@
+project,task,method,runs,total_minutes,minutes_per_unit,notes
+01 invoice ingestion,20 invoices,manual,1,,,"type into sheet + pick category by hand; use a stopwatch"
+01 invoice ingestion,20 invoices,automated,1,,,"drop 20 PDFs in the Drive folder; time until Sheet is complete + review queue cleared"
+02 chaser,weekly receivables chasing,manual,1,,,
+02 chaser,weekly receivables chasing,automated,1,,,
+03 reconciliation,100 transactions,manual (spreadsheet),1,,,
+03 reconciliation,100 transactions,automated,1,,,"include time to review exceptions"
+04 onboarding,1 new client,manual,1,,,
+04 onboarding,1 new client,automated,1,,,
+06 monthly report,1 report,manual,1,,,
+06 monthly report,1 report,automated,1,,,"include proofreading time"

@@ -1,0 +1,13 @@
+invoice_no,client,email,region,currency,amount,issue_date,due_date,status,last_tier_sent
+INV-2001,Acme Print Co,ap@acmeprint.example,US,USD,3104.75,2026-10-25,2026-11-24,Unpaid,0
+INV-2002,Birch Dental Group,accounts@birchdental.example,US,USD,3770.59,2026-10-17,2026-11-16,Unpaid,0
+INV-2003,Cobalt Studio,pay@cobaltstudio.example,US,USD,6030.11,2026-10-12,2026-11-11,Unpaid,0
+INV-2004,Delta Realty,finance@deltarealty.example,US,USD,3187.03,2026-10-04,2026-11-03,Unpaid,0
+INV-2005,Evergreen Cafe,owner@evergreencafe.example,US,USD,3448.62,2026-09-28,2026-10-28,Paid,0
+INV-2006,Foxglove Interiors,accounts@foxglove.example,UK,GBP,3941.79,2026-09-19,2026-10-19,Unpaid,0
+INV-2007,Granite Law LLP,finance@granitelaw.example,UK,GBP,1444.89,2026-09-05,2026-10-05,Unpaid,0
+INV-2008,Hollis & Day Builders,office@hollisday.example,UK,GBP,3473.83,2026-08-21,2026-09-20,Unpaid,0
+INV-2009,Ivy Lane Florists,hello@ivylane.example,UK,GBP,4205.27,2026-10-30,2026-11-29,Unpaid,0
+INV-2010,Juniper Fitness,billing@juniperfit.example,UK,GBP,5216.46,2026-10-08,2026-11-07,Paid,0
+INV-2011,Kestrel Logistics,ar@kestrel.example,US,USD,883.57,2026-09-15,2026-10-15,Unpaid,0
+INV-2012,Linden Physio,reception@lindenphysio.example,UK,GBP,2181.09,2026-10-18,2026-11-17,Unpaid,0
