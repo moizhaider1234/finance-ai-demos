@@ -1,0 +1,482 @@
+{
+ "name": "07 - AUDIT lead magnet system (DEMO)",
+ "nodes": [
+  {
+   "name": "AUDIT Readiness Form",
+   "type": "n8n-nodes-base.formTrigger",
+   "typeVersion": 2.2,
+   "position": [
+    240,
+    300
+   ],
+   "parameters": {
+    "formTitle": "Automation readiness AUDIT",
+    "formDescription": "7 quick questions. Get a personalised checklist by email.",
+    "formFields": {
+     "values": [
+      {
+       "fieldLabel": "Name",
+       "requiredField": true
+      },
+      {
+       "fieldLabel": "Email",
+       "fieldType": "email",
+       "requiredField": true
+      },
+      {
+       "fieldLabel": "Firm name"
+      },
+      {
+       "fieldLabel": "Invoices and receipts are entered by hand",
+       "fieldType": "dropdown",
+       "requiredField": true,
+       "fieldOptions": {
+        "values": [
+         {
+          "option": "Never"
+         },
+         {
+          "option": "Sometimes"
+         },
+         {
+          "option": "Always"
+         }
+        ]
+       }
+      },
+      {
+       "fieldLabel": "Bank reconciliation takes more than a day each month",
+       "fieldType": "dropdown",
+       "requiredField": true,
+       "fieldOptions": {
+        "values": [
+         {
+          "option": "Never"
+         },
+         {
+          "option": "Sometimes"
+         },
+         {
+          "option": "Always"
+         }
+        ]
+       }
+      },
+      {
+       "fieldLabel": "Overdue invoices are chased manually",
+       "fieldType": "dropdown",
+       "requiredField": true,
+       "fieldOptions": {
+        "values": [
+         {
+          "option": "Never"
+         },
+         {
+          "option": "Sometimes"
+         },
+         {
+          "option": "Always"
+         }
+        ]
+       }
+      },
+      {
+       "fieldLabel": "New client onboarding uses a manual checklist",
+       "fieldType": "dropdown",
+       "requiredField": true,
+       "fieldOptions": {
+        "values": [
+         {
+          "option": "Never"
+         },
+         {
+          "option": "Sometimes"
+         },
+         {
+          "option": "Always"
+         }
+        ]
+       }
+      },
+      {
+       "fieldLabel": "Clients ask the same questions repeatedly",
+       "fieldType": "dropdown",
+       "requiredField": true,
+       "fieldOptions": {
+        "values": [
+         {
+          "option": "Never"
+         },
+         {
+          "option": "Sometimes"
+         },
+         {
+          "option": "Always"
+         }
+        ]
+       }
+      },
+      {
+       "fieldLabel": "Monthly reports are built by hand in spreadsheets",
+       "fieldType": "dropdown",
+       "requiredField": true,
+       "fieldOptions": {
+        "values": [
+         {
+          "option": "Never"
+         },
+         {
+          "option": "Sometimes"
+         },
+         {
+          "option": "Always"
+         }
+        ]
+       }
+      },
+      {
+       "fieldLabel": "Documents are collected over email chains",
+       "fieldType": "dropdown",
+       "requiredField": true,
+       "fieldOptions": {
+        "values": [
+         {
+          "option": "Never"
+         },
+         {
+          "option": "Sometimes"
+         },
+         {
+          "option": "Always"
+         }
+        ]
+       }
+      }
+     ]
+    }
+   }
+  },
+  {
+   "name": "Score And Personalise",
+   "type": "n8n-nodes-base.code",
+   "typeVersion": 2,
+   "position": [
+    480,
+    300
+   ],
+   "parameters": {
+    "mode": "runOnceForEachItem",
+    "jsCode": "const j = $json;\nconst Q = [\n ['Invoices and receipts are entered by hand', 'Invoice entry', 'Automate invoice capture: extract vendor, date, tax and total from PDFs and auto-suggest categories, with a human review queue for low-confidence items.'],\n ['Bank reconciliation takes more than a day each month', 'Bank reconciliation', 'Auto-match bank lines to ledger entries on amount, date window and description; review only the exceptions.'],\n ['Overdue invoices are chased manually', 'Receivables chasing', 'Set tiered reminders (friendly, firm, final) that stop when an invoice is marked paid, plus a weekly summary to the owner.'],\n ['New client onboarding uses a manual checklist', 'Client onboarding', 'One intake form that creates folders, fills the engagement letter, emails the document checklist and creates tasks.'],\n ['Clients ask the same questions repeatedly', 'Client FAQs', 'A document-grounded assistant that answers routine questions, hands unclear ones to your team and declines to give tax advice.'],\n ['Monthly reports are built by hand in spreadsheets', 'Monthly reporting', 'Generate the calculations, a plain-English summary and a PDF from your monthly figures, then draft the client email.'],\n ['Documents are collected over email chains', 'Document collection', 'Send a standard checklist per client type and track what has arrived in one shared sheet.']\n];\nconst val = { 'Never': 0, 'Sometimes': 1, 'Always': 2 };\nconst rated = Q.map(q => ({ area: q[1], advice: q[2], v: val[j[q[0]]] || 0 }));\nconst raw = rated.reduce((a, r) => a + r.v, 0);\nconst score = Math.round((raw / (Q.length * 2)) * 100);\nconst tier = score >= 60 ? 'High opportunity' : score >= 30 ? 'Medium opportunity' : 'Low opportunity';\nconst headline = score >= 60 ? 'A lot of your week is likely going on repeatable manual work. Start with your top two items below.' : score >= 30 ? 'You have a few clear automation wins. Start with the first item below.' : 'Your processes are already fairly streamlined. The items below are optional polish.';\nconst actions = rated.filter(r => r.v > 0).sort((a, b) => b.v - a.v);\nif (actions.length === 0) actions.push({ area: 'Review', advice: 'Re-run this AUDIT in three months or when your client count grows.', v: 0 });\nreturn { json: { name: j['Name'], email: j['Email'], firm: j['Firm name'] || '', score: score, tier: tier, headline: headline, actions: actions.map(a => ({ area: a.area, advice: a.advice })) } };"
+   }
+  },
+  {
+   "name": "Build Checklist HTML",
+   "type": "n8n-nodes-base.code",
+   "typeVersion": 2,
+   "position": [
+    720,
+    300
+   ],
+   "parameters": {
+    "mode": "runOnceForEachItem",
+    "jsCode": "const s = $json;\nconst items = s.actions.map(a => '<li><b>' + a.area + '</b>: ' + a.advice + '</li>').join('');\nconst html = '<html><body style=\"font-family:Helvetica,Arial;margin:40px;color:#222\"><h1>Your Automation AUDIT</h1><p>Hi ' + s.name + (s.firm ? ' (' + s.firm + ')' : '') + ',</p><p><b>Automation opportunity score: ' + s.score + '/100 (' + s.tier + ')</b></p><p>' + s.headline + '</p><h2>Your priority checklist</h2><ol>' + items + '</ol><p style=\"color:#666\">This checklist is general guidance from a demo system, not financial or tax advice.</p></body></html>';\nconst bin = await this.helpers.prepareBinaryData(Buffer.from(html, 'utf8'), 'index.html', 'text/html');\nreturn { json: s, binary: { files: bin } };"
+   }
+  },
+  {
+   "name": "HTML To PDF Via Gotenberg",
+   "type": "n8n-nodes-base.httpRequest",
+   "typeVersion": 4.3,
+   "position": [
+    960,
+    300
+   ],
+   "parameters": {
+    "method": "POST",
+    "url": "PASTE_GOTENBERG_URL (e.g. http://HOST:3000/forms/chromium/convert/html)",
+    "sendBody": true,
+    "contentType": "multipart-form-data",
+    "bodyParameters": {
+     "parameters": [
+      {
+       "parameterType": "formBinaryData",
+       "name": "files",
+       "inputDataFieldName": "files"
+      }
+     ]
+    },
+    "options": {
+     "response": {
+      "response": {
+       "responseFormat": "file",
+       "outputPropertyName": "checklist"
+      }
+     }
+    }
+   }
+  },
+  {
+   "name": "Email Checklist To Lead",
+   "type": "n8n-nodes-base.gmail",
+   "typeVersion": 2.2,
+   "position": [
+    1200,
+    140
+   ],
+   "parameters": {
+    "resource": "message",
+    "operation": "send",
+    "sendTo": "={{ $(\"Score And Personalise\").item.json.email }}",
+    "subject": "Your personalised automation checklist",
+    "message": "=Hi {{ $(\"Score And Personalise\").item.json.name }},\n\nThanks for taking the AUDIT. Your personalised checklist is attached. Reply to this email if you want to talk through it.\n\nYOUR_NAME",
+    "emailType": "text",
+    "options": {
+     "attachmentsUi": {
+      "attachmentsBinary": [
+       {
+        "property": "checklist"
+       }
+      ]
+     }
+    }
+   }
+  },
+  {
+   "name": "Notify Me Of New Lead",
+   "type": "n8n-nodes-base.gmail",
+   "typeVersion": 2.2,
+   "position": [
+    1200,
+    300
+   ],
+   "parameters": {
+    "resource": "message",
+    "operation": "send",
+    "sendTo": "YOUR_EMAIL@example.com",
+    "subject": "=New AUDIT lead: {{ $(\"Score And Personalise\").item.json.name }} ({{ $(\"Score And Personalise\").item.json.score }})",
+    "message": "=Top area: {{ $(\"Score And Personalise\").item.json.actions[0].area }}\nEmail: {{ $(\"Score And Personalise\").item.json.email }}",
+    "emailType": "text"
+   }
+  },
+  {
+   "name": "Build Lead Row",
+   "type": "n8n-nodes-base.code",
+   "typeVersion": 2,
+   "position": [
+    1200,
+    460
+   ],
+   "parameters": {
+    "mode": "runOnceForEachItem",
+    "jsCode": "const s = $('Score And Personalise').item.json;\nreturn { json: { date: new Date().toISOString(), name: s.name, email: s.email, firm: s.firm, score: s.score, tier: s.tier, top_area: s.actions[0].area } };"
+   }
+  },
+  {
+   "name": "Log Lead To Sheet",
+   "type": "n8n-nodes-base.googleSheets",
+   "typeVersion": 4.7,
+   "position": [
+    1440,
+    460
+   ],
+   "parameters": {
+    "resource": "sheet",
+    "operation": "append",
+    "documentId": {
+     "__rl": true,
+     "mode": "id",
+     "value": "PASTE_GOOGLE_SHEET_ID"
+    },
+    "sheetName": {
+     "__rl": true,
+     "mode": "name",
+     "value": "Leads"
+    },
+    "columns": {
+     "mappingMode": "autoMapInputData",
+     "schema": [],
+     "value": {}
+    }
+   }
+  },
+  {
+   "name": "Wait 2 Days",
+   "type": "n8n-nodes-base.wait",
+   "typeVersion": 1.1,
+   "position": [
+    1680,
+    460
+   ],
+   "parameters": {
+    "resume": "timeInterval",
+    "amount": 2,
+    "unit": "days"
+   }
+  },
+  {
+   "name": "Draft Follow Up 1",
+   "type": "n8n-nodes-base.gmail",
+   "typeVersion": 2.2,
+   "position": [
+    1920,
+    460
+   ],
+   "parameters": {
+    "resource": "draft",
+    "operation": "create",
+    "subject": "Did the checklist help?",
+    "message": "=Hi {{ $(\"Score And Personalise\").item.json.name }},\n\nQuick check-in: your biggest opportunity was {{ $(\"Score And Personalise\").item.json.actions[0].area }}. Want a 15-minute walkthrough of how that could be automated?\n\nYOUR_NAME",
+    "emailType": "text",
+    "options": {
+     "sendTo": "={{ $(\"Score And Personalise\").item.json.email }}"
+    }
+   }
+  },
+  {
+   "name": "Wait 3 More Days",
+   "type": "n8n-nodes-base.wait",
+   "typeVersion": 1.1,
+   "position": [
+    2160,
+    460
+   ],
+   "parameters": {
+    "resume": "timeInterval",
+    "amount": 3,
+    "unit": "days"
+   }
+  },
+  {
+   "name": "Draft Follow Up 2",
+   "type": "n8n-nodes-base.gmail",
+   "typeVersion": 2.2,
+   "position": [
+    2400,
+    460
+   ],
+   "parameters": {
+    "resource": "draft",
+    "operation": "create",
+    "subject": "A short demo you might like",
+    "message": "=Hi {{ $(\"Score And Personalise\").item.json.name }},\n\nI built a short demo video of an automation like this (on fictional data). Reply DEMO and I will send the link.\n\nYOUR_NAME",
+    "emailType": "text",
+    "options": {
+     "sendTo": "={{ $(\"Score And Personalise\").item.json.email }}"
+    }
+   }
+  }
+ ],
+ "connections": {
+  "AUDIT Readiness Form": {
+   "main": [
+    [
+     {
+      "node": "Score And Personalise",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Score And Personalise": {
+   "main": [
+    [
+     {
+      "node": "Build Checklist HTML",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Build Checklist HTML": {
+   "main": [
+    [
+     {
+      "node": "HTML To PDF Via Gotenberg",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "HTML To PDF Via Gotenberg": {
+   "main": [
+    [
+     {
+      "node": "Email Checklist To Lead",
+      "type": "main",
+      "index": 0
+     },
+     {
+      "node": "Notify Me Of New Lead",
+      "type": "main",
+      "index": 0
+     },
+     {
+      "node": "Build Lead Row",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Build Lead Row": {
+   "main": [
+    [
+     {
+      "node": "Log Lead To Sheet",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Log Lead To Sheet": {
+   "main": [
+    [
+     {
+      "node": "Wait 2 Days",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Wait 2 Days": {
+   "main": [
+    [
+     {
+      "node": "Draft Follow Up 1",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Draft Follow Up 1": {
+   "main": [
+    [
+     {
+      "node": "Wait 3 More Days",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Wait 3 More Days": {
+   "main": [
+    [
+     {
+      "node": "Draft Follow Up 2",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  }
+ },
+ "settings": {
+  "executionOrder": "v1"
+ }
+}

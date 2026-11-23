@@ -1,0 +1,277 @@
+{
+ "name": "03 - Bank reconciliation helper (DEMO)",
+ "nodes": [
+  {
+   "name": "Upload Bank And Ledger CSV",
+   "type": "n8n-nodes-base.formTrigger",
+   "typeVersion": 2.2,
+   "position": [
+    240,
+    300
+   ],
+   "parameters": {
+    "formTitle": "Bank reconciliation (demo)",
+    "formDescription": "Upload a bank CSV (id,date,description,amount) and a ledger CSV (id,date,memo,amount). Use fake data only.",
+    "formFields": {
+     "values": [
+      {
+       "fieldLabel": "bank_csv",
+       "fieldType": "file",
+       "multipleFiles": false,
+       "acceptFileTypes": ".csv",
+       "requiredField": true
+      },
+      {
+       "fieldLabel": "ledger_csv",
+       "fieldType": "file",
+       "multipleFiles": false,
+       "acceptFileTypes": ".csv",
+       "requiredField": true
+      }
+     ]
+    }
+   }
+  },
+  {
+   "name": "Read Bank CSV",
+   "type": "n8n-nodes-base.extractFromFile",
+   "typeVersion": 1.1,
+   "position": [
+    480,
+    200
+   ],
+   "parameters": {
+    "operation": "csv",
+    "binaryPropertyName": "bank_csv"
+   }
+  },
+  {
+   "name": "Read Ledger CSV",
+   "type": "n8n-nodes-base.extractFromFile",
+   "typeVersion": 1.1,
+   "position": [
+    480,
+    400
+   ],
+   "parameters": {
+    "operation": "csv",
+    "binaryPropertyName": "ledger_csv"
+   }
+  },
+  {
+   "name": "Wait For Both Files",
+   "type": "n8n-nodes-base.merge",
+   "typeVersion": 3.2,
+   "position": [
+    720,
+    300
+   ],
+   "parameters": {
+    "mode": "append"
+   }
+  },
+  {
+   "name": "Fuzzy Match",
+   "type": "n8n-nodes-base.code",
+   "typeVersion": 2,
+   "position": [
+    960,
+    300
+   ],
+   "parameters": {
+    "mode": "runOnceForAllItems",
+    "jsCode": "function norm(s){return String(s||'').toLowerCase().replace(/[^a-z0-9 ]/g,' ').replace(/\\b(pos|purchase|card|payment|pmt|ref|ach|dd|fpi|bacs|inv|the|ltd|inc|llc)\\b/g,' ').replace(/\\s+/g,' ').trim();}\nfunction tokens(s){return norm(s).split(' ').filter(t=>t.length>2);}\nfunction sim(a,b){const A=tokens(a),B=tokens(b);if(!A.length||!B.length)return 0;let hit=0;for(const t of A){if(B.some(u=>u===t||(t.length>=4&&u.length>=4&&(u.startsWith(t.slice(0,4))))))hit++;}return hit/(A.length+B.length-hit);}\nfunction days(a,b){return Math.abs((new Date(a)-new Date(b))/86400000);}\nfunction reconcile(bank,ledger,opts){\n  const win=(opts&&opts.window)||3, tol=(opts&&opts.tol)||0.005;\n  const pairs=[];\n  bank.forEach((b,i)=>ledger.forEach((l,j)=>{\n    if(Math.abs(Number(b.amount)-Number(l.amount))<=tol){const d=days(b.date,l.date);\n      if(d<=win){const s=sim(b.description,l.memo);pairs.push({i,j,score:0.6*s+0.4*(1-d/(win+1)),sim:s,d});}}\n  }));\n  const cb={},cl={};pairs.forEach(p=>{cb[p.i]=(cb[p.i]||0)+1;cl[p.j]=(cl[p.j]||0)+1;});\n  pairs.sort((x,y)=>y.score-x.score);\n  const ub=new Set(), ul=new Set(), matched=[];\n  for(const p of pairs){ if(ub.has(p.i)||ul.has(p.j))continue; ub.add(p.i); ul.add(p.j);\n    matched.push({bank:bank[p.i],ledger:ledger[p.j],score:+p.score.toFixed(3),confidence:(cb[p.i]>1||cl[p.j]>1)?'review':'high'});}\n  const unB=bank.filter((_,i)=>!ub.has(i)), unL=ledger.filter((_,j)=>!ul.has(j));\n  const exceptions=unB.map(b=>{\n    const cands=unL.map(l=>{const rel=Math.abs(Number(b.amount)-Number(l.amount))/Math.max(1,Math.abs(Number(b.amount)));\n      return {l,rel,d:days(b.date,l.date),s:sim(b.description,l.memo)};})\n      .filter(c=>c.d<=10&&(c.rel<=0.05||c.s>=0.3))\n      .sort((x,y)=>(y.s-x.s)||(x.rel-y.rel)).slice(0,3).map(c=>c.l);\n    return {bank:b,candidates:cands};});\n  return {matched,unmatchedBank:unB,unmatchedLedger:unL,exceptions};\n}\nconst bank = $('Read Bank CSV').all().map(i => i.json);\nconst ledger = $('Read Ledger CSV').all().map(i => i.json);\nconst r = reconcile(bank, ledger, { window: 3 });\nconst summary = { bank_rows: bank.length, ledger_rows: ledger.length, matched: r.matched.length, match_rate_pct: +((r.matched.length / bank.length) * 100).toFixed(1), review_flags: r.matched.filter(x => x.confidence === 'review').length, unmatched_bank: r.unmatchedBank.length, unmatched_ledger: r.unmatchedLedger.length };\nreturn [{ json: { summary: summary, matched: r.matched, exceptions: r.exceptions, unmatchedLedger: r.unmatchedLedger } }];"
+   }
+  },
+  {
+   "name": "Build LLM Request For Exceptions",
+   "type": "n8n-nodes-base.code",
+   "typeVersion": 2,
+   "position": [
+    1200,
+    300
+   ],
+   "parameters": {
+    "mode": "runOnceForEachItem",
+    "jsCode": "const ex = $json.exceptions.filter(e => e.candidates.length > 0);\nconst sys = 'You are a bookkeeping assistant. For each unmatched bank transaction you get up to 3 candidate ledger entries. Pick the most likely match or say none. Explain in one short sentence (e.g. bank fee deducted, timing difference). Respond ONLY with JSON: {\"suggestions\":[{\"bank_id\":\"\",\"ledger_id\":\"\" or null,\"confidence\":0-1,\"reason\":\"\"}]}. Never invent ids.';\nreturn { json: { body: { model: 'gpt-4o-mini', temperature: 0, response_format: { type: 'json_object' }, messages: [ { role: 'system', content: sys }, { role: 'user', content: JSON.stringify(ex) } ] } } };"
+   }
+  },
+  {
+   "name": "LLM Suggest Matches For Exceptions",
+   "type": "@n8n/n8n-nodes-langchain.googleGemini",
+   "typeVersion": 1.2,
+   "position": [
+    1440,
+    300
+   ],
+   "parameters": {
+    "builtInTools": {
+     "codeExecution": false,
+     "googleSearch": false,
+     "urlContext": false
+    },
+    "jsonOutput": true,
+    "messages": {
+     "values": [
+      {
+       "content": "={{ $json.body.messages[1].content }}",
+       "role": "user"
+      }
+     ]
+    },
+    "modelId": {
+     "__rl": true,
+     "mode": "id",
+     "value": "models/gemini-3-flash-preview"
+    },
+    "operation": "message",
+    "options": {
+     "maxOutputTokens": 1500,
+     "systemMessage": "={{ $json.body.messages[0].content }}",
+     "temperature": 0
+    },
+    "resource": "text",
+    "simplify": true
+   }
+  },
+  {
+   "name": "Assemble Report Rows",
+   "type": "n8n-nodes-base.code",
+   "typeVersion": 2,
+   "position": [
+    1680,
+    300
+   ],
+   "parameters": {
+    "mode": "runOnceForAllItems",
+    "jsCode": "const d = $('Fuzzy Match').first().json;\nconst g = $input.first().json;\nlet txt = (g.content && g.content.parts && g.content.parts[0] && g.content.parts[0].text) || g.text || '';\ntxt = String(txt).split('```json').join('').split('```').join('').trim();\nlet sug = []; try { sug = JSON.parse(txt).suggestions || []; } catch (e) { sug = []; }\nconst rows = [];\nd.matched.forEach(x => rows.push({ status: 'MATCHED (' + x.confidence + ')', bank_id: x.bank.id, date: x.bank.date, description: x.bank.description, amount: x.bank.amount, ledger_id: x.ledger.id, note: '' }));\nd.exceptions.forEach(e => { const s = sug.find(z => z.bank_id === e.bank.id); rows.push({ status: 'UNMATCHED BANK', bank_id: e.bank.id, date: e.bank.date, description: e.bank.description, amount: e.bank.amount, ledger_id: s && s.ledger_id ? s.ledger_id : '', note: s ? ('AI suggestion (' + s.confidence + '): ' + s.reason + ' - needs human approval') : 'no candidate' }); });\nd.unmatchedLedger.forEach(l => rows.push({ status: 'UNMATCHED LEDGER', bank_id: '', date: l.date, description: l.memo, amount: l.amount, ledger_id: l.id, note: '' }));\nrows.push({ status: 'SUMMARY', bank_id: '', date: '', description: JSON.stringify(d.summary), amount: '', ledger_id: '', note: '' });\nreturn rows.map(r => ({ json: r }));"
+   }
+  },
+  {
+   "name": "Write Report To Sheet",
+   "type": "n8n-nodes-base.googleSheets",
+   "typeVersion": 4.7,
+   "position": [
+    1920,
+    300
+   ],
+   "parameters": {
+    "resource": "sheet",
+    "operation": "append",
+    "documentId": {
+     "__rl": true,
+     "mode": "id",
+     "value": "PASTE_GOOGLE_SHEET_ID"
+    },
+    "sheetName": {
+     "__rl": true,
+     "mode": "name",
+     "value": "Reconciliation Report"
+    },
+    "columns": {
+     "mappingMode": "autoMapInputData",
+     "value": {},
+     "schema": []
+    }
+   }
+  }
+ ],
+ "connections": {
+  "Upload Bank And Ledger CSV": {
+   "main": [
+    [
+     {
+      "node": "Read Bank CSV",
+      "type": "main",
+      "index": 0
+     },
+     {
+      "node": "Read Ledger CSV",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Read Bank CSV": {
+   "main": [
+    [
+     {
+      "node": "Wait For Both Files",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Read Ledger CSV": {
+   "main": [
+    [
+     {
+      "node": "Wait For Both Files",
+      "type": "main",
+      "index": 1
+     }
+    ]
+   ]
+  },
+  "Wait For Both Files": {
+   "main": [
+    [
+     {
+      "node": "Fuzzy Match",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Fuzzy Match": {
+   "main": [
+    [
+     {
+      "node": "Build LLM Request For Exceptions",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Build LLM Request For Exceptions": {
+   "main": [
+    [
+     {
+      "node": "LLM Suggest Matches For Exceptions",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "LLM Suggest Matches For Exceptions": {
+   "main": [
+    [
+     {
+      "node": "Assemble Report Rows",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Assemble Report Rows": {
+   "main": [
+    [
+     {
+      "node": "Write Report To Sheet",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  }
+ },
+ "settings": {
+  "executionOrder": "v1"
+ }
+}
